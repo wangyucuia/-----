@@ -6,7 +6,7 @@
 //  Copyright © 2016年 王玉翠. All rights reserved.
 //
 
-#import "ViewController.h"
+#import "YYFaceViewController.h"
 #import "FaceppAPI.h"
 
 
@@ -15,7 +15,7 @@
 #define BtnBorder 40
 #define ImgeBorder 20
 
-@interface ViewController ()<UINavigationControllerDelegate,UIImagePickerControllerDelegate>
+@interface YYFaceViewController ()
 
 //显示图片的imageView
 @property (nonatomic, strong) UIImageView *firstImageView;
@@ -44,18 +44,12 @@
 @end
 
 
-@implementation ViewController
+@implementation YYFaceViewController
 
 -(void)viewDidLoad{
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    //检测相似度
-   // [self drawView];
-    
-#pragma Mark ------原 CoreImage 之 CIDetector iOS 人脸识别
-
-   //画出人脸的区域
-    [self checkYouFace];
+    [self drawView];
     
 }
 
@@ -72,16 +66,16 @@
     UIButton *secondBTN = [UIButton buttonWithType:UIButtonTypeSystem];
     secondBTN.frame = CGRectMake(CGRectGetMaxX(firstBTN.frame) + BtnBorder, 100, (KWidth - BtnBorder * 3) / 2, 30);
     [secondBTN setTitle:@"setSecondPhone" forState:(UIControlStateNormal)];
-    [secondBTN addTarget:self action:@selector(selectSecondPhoto) forControlEvents:UIControlEventTouchUpInside];
+    [secondBTN addTarget:secondBTN action:@selector(selectSecondPhoto) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:secondBTN];
     
     //创建两个相框,显示图片
-    UIImageView *firstImageView = [[UIImageView alloc] initWithFrame:CGRectMake(ImgeBorder, 140, (KWidth - ImgeBorder * 3) / 2, (KWidth - ImgeBorder * 3) / 2 * KHeight / KWidth)];
+    UIImageView *firstImageView = [[UIImageView alloc] initWithFrame:CGRectMake(ImgeBorder, 140, (KWidth - ImgeBorder * 3) / 2, (KWidth - ImgeBorder * 3) / 2 * KHeight)];
     firstImageView.backgroundColor = [UIColor orangeColor];
     [self.view addSubview:firstImageView];
     self.firstImageView = firstImageView;
     
-    UIImageView *secondImageView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(firstImageView.frame) + ImgeBorder, 140, (KWidth - ImgeBorder * 3)/ 2 , (KWidth - ImgeBorder * 3) / 2 * KHeight/ KWidth)];
+    UIImageView *secondImageView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(firstImageView.frame) + ImgeBorder, 140, (KWidth - ImgeBorder * 3)/ 2 , (KWidth - ImgeBorder * 3) / 2 * KHeight)];
     secondImageView.backgroundColor = [UIColor orangeColor];
     [self.view addSubview:secondImageView];
     self.secondImageView = secondImageView;
@@ -112,7 +106,6 @@
     
     self.imageTag = 999;
     [self alertController];
-   // self.firstImageView.image = [UIImage imageNamed:@"屏幕快照 2016-08-15 下午2.06.46"];
     
     
 }
@@ -122,17 +115,14 @@
     
     self.imageTag = 888;
     [self alertController];
-    //self.secondImageView.image = [UIImage imageNamed:@"屏幕快照 2016-08-15 下午2.06.52"];
     
 }
 
 
 //检测相似度
 -(void)recoginzed{
-    //获取两张面孔的face_id
+  //获取两张面孔的face_id
     NSString *firstFace_id;
-    //NSData *firstImageData = UIImagePNGRepresentation(self.firstImageView.image);
-    
     NSData *firstImageData = UIImageJPEGRepresentation(self.firstImageView.image, 0.6);
     FaceppResult *firstResult = [[FaceppAPI detection] detectWithURL:nil orImageData:firstImageData];
     NSArray *array1 = firstResult.content[@"face"];
@@ -180,73 +170,6 @@
     }
     
 }
-
-
-
--(void)checkYouFace{
-    
-    UIImage *image = [UIImage imageNamed:@"屏幕快照 2016-08-15 下午4.06.30"];
-    UIImageView *testImage = [[UIImageView alloc] initWithImage:image];
-    [testImage setTransform:CGAffineTransformMakeScale(1, -1)];
-    [[[UIApplication sharedApplication] delegate].window setTransform:
-     CGAffineTransformMakeScale(1, -1)];
-   [testImage setFrame:CGRectMake(0, 0, testImage.image.size.width, testImage.image.size.height)];
-  // testImage.frame = CGRectMake(50, 50, 300, 300);
-    
-    [self.view addSubview:testImage];
-    
-    //识别图片
-    CIImage *ciimage = [CIImage imageWithCGImage:image.CGImage];
-    NSDictionary *opts = [NSDictionary dictionaryWithObject:CIDetectorAccuracyHigh forKey:CIDetectorAccuracy];
-    CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeFace context:nil options:opts];
-    NSArray *fatures = [detector featuresInImage:ciimage];
-    //标出脸部,眼睛和嘴:
-
-    for (CIFaceFeature *faceFeature in fatures) {
-    
-        
-        // 标出脸部
-        CGFloat faceWidth = faceFeature.bounds.size.width;
-        UIView* faceView = [[UIView alloc] initWithFrame:faceFeature.bounds];
-        faceView.layer.borderWidth = 1;
-        faceView.layer.borderColor = [[UIColor redColor] CGColor];
-        [self.view addSubview:faceView];
-        
-        // 标出左眼
-        if(faceFeature.hasLeftEyePosition) {
-            UIView* leftEyeView = [[UIView alloc] initWithFrame:
-                                   CGRectMake(faceFeature.leftEyePosition.x-faceWidth*0.15,
-                                              faceFeature.leftEyePosition.y-faceWidth*0.15, faceWidth*0.3, faceWidth*0.3)];
-            [leftEyeView setBackgroundColor:[[UIColor blueColor] colorWithAlphaComponent:0.3]];
-            [leftEyeView setCenter:faceFeature.leftEyePosition];
-            leftEyeView.layer.cornerRadius = faceWidth*0.15;
-            [self.view  addSubview:leftEyeView];
-        }
-        // 标出右眼
-        if(faceFeature.hasRightEyePosition) {
-            UIView* leftEye = [[UIView alloc] initWithFrame:
-                               CGRectMake(faceFeature.rightEyePosition.x-faceWidth*0.15,
-                                          faceFeature.rightEyePosition.y-faceWidth*0.15, faceWidth*0.3, faceWidth*0.3)];
-            [leftEye setBackgroundColor:[[UIColor blueColor] colorWithAlphaComponent:0.3]];
-            [leftEye setCenter:faceFeature.rightEyePosition];
-            leftEye.layer.cornerRadius = faceWidth*0.15;
-            [self.view  addSubview:leftEye];
-        }
-        // 标出嘴部
-        if(faceFeature.hasMouthPosition) {
-            UIView* mouth = [[UIView alloc] initWithFrame:
-                             CGRectMake(faceFeature.mouthPosition.x-faceWidth*0.2,
-                                        faceFeature.mouthPosition.y-faceWidth*0.2, faceWidth*0.4, faceWidth*0.4)];
-            [mouth setBackgroundColor:[[UIColor greenColor] colorWithAlphaComponent:0.3]];
-            [mouth setCenter:faceFeature.mouthPosition];
-            mouth.layer.cornerRadius = faceWidth*0.2;
-            [self.view  addSubview:mouth]; 
-        }
-    }
-    
-    
-}
-
 
 
 -(void)alertController{
